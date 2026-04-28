@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuickShop | One-Stop Store</title>
+    <style>
+        /* CSS STYLES */
+        :root {
+            --primary: #2563eb;
+            --dark: #1e293b;
+            --light: #f8fafc;
+            --accent: #ef4444;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: var(--light); color: var(--dark); line-height: 1.6; }
+
+        /* Header */
+        header {
+            background: var(--dark);
+            color: white;
+            padding: 1rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .cart-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* Hero & Products */
+        .container { max-width: 1200px; margin: 2rem auto; padding: 0 20px; }
+        
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.2s;
+        }
+
+        .product-card:hover { transform: translateY(-5px); }
+        .product-card img { max-width: 100%; height: 150px; object-fit: contain; }
+        .product-card h3 { margin: 1rem 0; }
+        .price { color: var(--primary); font-size: 1.2rem; font-weight: bold; }
+        
+        .add-btn {
+            background: var(--dark);
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 0.7rem;
+            margin-top: 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        /* Cart Sidebar */
+        #cart-modal {
+            position: fixed;
+            right: -400px;
+            top: 0;
+            width: 350px;
+            height: 100%;
+            background: white;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.2);
+            transition: 0.3s;
+            z-index: 200;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #cart-modal.active { right: 0; }
+        .cart-item { display: flex; justify-content: space-between; margin-bottom: 1rem; border-bottom: 1px solid #eee; padding-bottom: 0.5rem; }
+
+        /* Checkout Form */
+        .checkout-section {
+            margin-top: auto;
+            border-top: 2px solid var(--dark);
+            padding-top: 1rem;
+        }
+
+        input {
+            width: 100%;
+            padding: 0.5rem;
+            margin: 0.3rem 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        footer {
+            background: var(--dark);
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            margin-top: 4rem;
+        }
+
+        .close-cart { cursor: pointer; color: var(--accent); font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>QuickShop</h1>
+        <button class="cart-btn" onclick="toggleCart()">🛒 Cart (<span id="cart-count">0</span>)</button>
+    </header>
+
+    <div class="container">
+        <h2>Our Products</h2><br>
+        <div class="product-grid" id="product-list">
+            </div>
+    </div>
+
+    <div id="cart-modal">
+        <div style="display: flex; justify-content: space-between;">
+            <h2>Your Cart</h2>
+            <span class="close-cart" onclick="toggleCart()">X Close</span>
+        </div>
+        <hr><br>
+        <div id="cart-items">
+            <p>Your cart is empty.</p>
+        </div>
+        
+        <div class="checkout-section">
+            <h3>Total: $<span id="total-price">0.00</span></h3>
+            <br>
+            <h4>Billing Details</h4>
+            <input type="text" id="name" placeholder="Full Name">
+            <input type="text" id="address" placeholder="Shipping Address">
+            <input type="text" id="card" placeholder="Card Number (Mock)">
+            <button class="add-btn" style="background: #10b981;" onclick="processOrder()">Buy Now</button>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 QuickShop Inc. | All Rights Reserved</p>
+    </footer>
+
+    <script>
+        // JAVASCRIPT LOGIC
+        const products = [
+            { id: 1, name: "Wireless Headphones", price: 99.99, img: "https://via.placeholder.com/150?text=Audio" },
+            { id: 2, name: "Smart Watch", price: 149.50, img: "https://via.placeholder.com/150?text=Watch" },
+            { id: 3, name: "Gaming Mouse", price: 45.00, img: "https://via.placeholder.com/150?text=Mouse" },
+            { id: 4, name: "Mechanical Keyboard", price: 120.00, img: "https://via.placeholder.com/150?text=Keyboard" }
+        ];
+
+        let cart = [];
+
+        // Render Products
+        const productList = document.getElementById('product-list');
+        products.forEach(product => {
+            productList.innerHTML += `
+                <div class="product-card">
+                    <img src="${product.img}" alt="${product.name}">
+                    <h3>${product.name}</h3>
+                    <p class="price">$${product.price.toFixed(2)}</p>
+                    <button class="add-btn" onclick="addToCart(${product.id})">Add to Cart</button>
+                </div>
+            `;
+        });
+
+        function toggleCart() {
+            document.getElementById('cart-modal').classList.toggle('active');
+        }
+
+        function addToCart(id) {
+            const product = products.find(p => p.id === id);
+            cart.push(product);
+            updateCartUI();
+        }
+
+        function updateCartUI() {
+            const cartContainer = document.getElementById('cart-items');
+            const cartCount = document.getElementById('cart-count');
+            const totalPrice = document.getElementById('total-price');
+            
+            cartCount.innerText = cart.length;
+            
+            if (cart.length === 0) {
+                cartContainer.innerHTML = "<p>Your cart is empty.</p>";
+                totalPrice.innerText = "0.00";
+                return;
+            }
+
+            let total = 0;
+            cartContainer.innerHTML = "";
+            cart.forEach((item, index) => {
+                total += item.price;
+                cartContainer.innerHTML += `
+                    <div class="cart-item">
+                        <span>${item.name}</span>
+                        <span>$${item.price.toFixed(2)}</span>
+                    </div>
+                `;
+            });
+            totalPrice.innerText = total.toFixed(2);
+        }
+
+        function processOrder() {
+            const name = document.getElementById('name').value;
+            if (cart.length === 0) {
+                alert("Cart is empty!");
+            } else if (!name) {
+                alert("Please enter your name for billing.");
+            } else {
+                alert(`Thank you, ${name}! Your order of $${document.getElementById('total-price').innerText} has been placed.`);
+                cart = [];
+                updateCartUI();
+                toggleCart();
+            }
+        }
+    </script>
+</body>
+</html>
