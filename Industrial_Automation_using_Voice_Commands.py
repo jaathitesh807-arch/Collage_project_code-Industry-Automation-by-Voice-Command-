@@ -7,9 +7,9 @@ import sys
 import time
 
 REGION = "us-east-1"
-AMI_ID = "ami-0f3caa1cf4417e51b"   # Amazon Linux 2023
+AMI_ID = "ami-0f3caa1cf4417e51b"   
 INSTANCE_TYPE = "t3.micro"
-KEY_NAME = "key-for-virginia"      # ✅ FIXED KEY
+KEY_NAME = "key-for-virginia"      
 
 ec2 = boto3.client("ec2", region_name=REGION)
 ec2_res = boto3.resource("ec2", region_name=REGION)
